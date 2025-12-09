@@ -1,14 +1,117 @@
-# Kubernetes Setup Guide for WSL2
+# Kubernetes Setup Guide
 
-This guide will help you set up Kubernetes on WSL2 to deploy and test the UniGIG project with Eureka service discovery.
+This guide will help you set up Kubernetes to deploy and test the UniGIG project with Eureka service discovery.
+
+**Choose your platform:**
+- **[Windows (Docker Desktop)](#windows-docker-desktop)** - Easiest for Windows users
+- **[WSL2/Linux (Minikube)](#wsl2linux-minikube)** - For WSL2 or native Linux
+- **[macOS (Docker Desktop or Minikube)](#macos-docker-desktop-or-minikube)** - For Mac users
 
 ---
 
-## 📋 Prerequisites
+## 🪟 Windows (Docker Desktop)
 
-- WSL2 installed on Windows
-- Ubuntu or another Linux distribution running on WSL2
-- At least 4GB RAM allocated to WSL2
+### Prerequisites
+
+- Windows 10/11 with WSL2 enabled
+- At least 8GB RAM
+
+### Step 1: Install Docker Desktop
+
+1. Download [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+2. Run the installer
+3. Ensure "Use WSL 2 instead of Hyper-V" is selected
+4. Restart your computer if prompted
+
+### Step 2: Enable Kubernetes in Docker Desktop
+
+1. **Open Docker Desktop**
+2. Click **Settings** (gear icon)
+3. Go to **Kubernetes** tab
+4. Check **Enable Kubernetes**
+5. Click **Apply & Restart**
+6. Wait for Kubernetes to start (green indicator)
+
+### Step 3: Verify Installation
+
+**PowerShell or CMD:**
+```powershell
+# Check Docker
+docker --version
+
+# Check kubectl
+kubectl version --client
+
+# Check cluster
+kubectl cluster-info
+kubectl get nodes
+```
+
+You should see one node named `docker-desktop`.
+
+### Step 4: Build Docker Images
+
+**PowerShell (navigate to project directory):**
+```powershell
+cd path\to\MSLab-project\MSLAB
+
+# Build all images
+docker build -t eureka-server:latest .\eureka-server
+docker build -t user-service:latest .\user-service
+docker build -t gig-service:latest .\gig-service
+docker build -t payment-service:latest .\payment-service
+docker build -t application-service:latest .\application-service
+docker build -t frontend:latest .\frontend
+
+# Verify images
+docker images | Select-String "eureka|user-service|gig-service|payment-service|application-service|frontend"
+```
+
+### Step 5: Deploy to Kubernetes
+
+```powershell
+# Apply all manifests
+kubectl apply -f k8s/
+
+# Watch pods starting
+kubectl get pods -w
+```
+
+Press `Ctrl+C` when all pods show `Running`.
+
+### Step 6: Access Services
+
+**Open new PowerShell windows for each:**
+
+```powershell
+# Terminal 1 - Eureka Dashboard
+kubectl port-forward svc/eureka-server 8761:8761
+# Open: http://localhost:8761
+
+# Terminal 2 - Frontend
+kubectl port-forward svc/frontend 3000:80
+# Open: http://localhost:3000
+```
+
+### Cleanup
+
+```powershell
+# Delete resources
+kubectl delete -f k8s/
+
+# Stop Kubernetes (optional)
+# Docker Desktop > Settings > Kubernetes > Uncheck "Enable Kubernetes"
+```
+
+---
+
+## 🐧 WSL2/Linux (Minikube)
+
+### Prerequisites
+
+- WSL2 installed on Windows (for WSL2 users)
+- Ubuntu or another Linux distribution
+- At least 4GB RAM allocated
 
 ---
 
@@ -506,7 +609,80 @@ kubectl port-forward svc/eureka-server 8762:8761
 
 ---
 
+## 🍎 macOS (Docker Desktop or Minikube)
+
+### Option 1: Docker Desktop (Recommended)
+
+#### Step 1: Install Docker Desktop
+
+1. Download [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop)
+2. Install and start Docker Desktop
+3. Go to **Settings** → **Kubernetes**
+4. Check **Enable Kubernetes**
+5. Click **Apply & Restart**
+
+#### Step 2: Verify Installation
+
+```bash
+# Check installations
+docker --version
+kubectl version --client
+kubectl cluster-info
+kubectl get nodes
+```
+
+#### Step 3: Build and Deploy
+
+```bash
+# Navigate to project
+cd ~/path/to/MSLab-project/MSLAB
+
+# Build images
+docker build -t eureka-server:latest ./eureka-server
+docker build -t user-service:latest ./user-service
+docker build -t gig-service:latest ./gig-service
+docker build -t payment-service:latest ./payment-service
+docker build -t application-service:latest ./application-service
+docker build -t frontend:latest ./frontend
+
+# Deploy
+kubectl apply -f k8s/
+
+# Monitor
+kubectl get pods -w
+```
+
+#### Step 4: Access Services
+
+```bash
+# Terminal 1 - Eureka
+kubectl port-forward svc/eureka-server 8761:8761
+
+# Terminal 2 - Frontend
+kubectl port-forward svc/frontend 3000:80
+```
+
+### Option 2: Minikube
+
+Follow the same steps as WSL2/Linux section above, but use Homebrew for installation:
+
+```bash
+# Install Minikube
+brew install minikube
+
+# Install kubectl (if not already installed)
+brew install kubectl
+
+# Start Minikube
+minikube start --driver=docker
+
+# Continue with steps from WSL2/Linux section
+```
+
+---
+
 ## 📝 Notes
+
 
 1. **No Database in K8s Setup:** The current K8s manifests don't include PostgreSQL. Services will fail to connect to DB. You may need to add a Postgres deployment or use Docker Compose for the database.
 
