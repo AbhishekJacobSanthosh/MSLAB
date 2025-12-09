@@ -14,6 +14,15 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @PostMapping("/login")
+    public ResponseEntity<User> login(@RequestBody User loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail());
+        if (user != null && user.getPassword().equals(loginRequest.getPassword())) {
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.status(401).build();
+    }
+
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userRepository.save(user);
