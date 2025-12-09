@@ -47,6 +47,22 @@ public class UserController {
                     user.setName(userDetails.getName());
                     user.setEmail(userDetails.getEmail());
                     user.setRole(userDetails.getRole());
+                    user.setBio(userDetails.getBio());
+                    user.setSkills(userDetails.getSkills());
+                    return ResponseEntity.ok(userRepository.save(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<User> patchUser(@PathVariable Long id, @RequestBody User userDetails) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (userDetails.getName() != null) user.setName(userDetails.getName());
+                    if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
+                    if (userDetails.getRole() != null) user.setRole(userDetails.getRole());
+                    if (userDetails.getBio() != null) user.setBio(userDetails.getBio());
+                    if (userDetails.getSkills() != null) user.setSkills(userDetails.getSkills());
                     return ResponseEntity.ok(userRepository.save(user));
                 })
                 .orElse(ResponseEntity.notFound().build());

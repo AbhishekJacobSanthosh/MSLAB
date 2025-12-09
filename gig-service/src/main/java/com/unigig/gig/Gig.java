@@ -1,10 +1,13 @@
 package com.unigig.gig;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "gigs")
@@ -17,14 +20,19 @@ public class Gig {
     private String description;
     private Double reward;
     private String status; // OPEN, ASSIGNED, COMPLETED, PAID
+    private Integer maxPositions = 1;
+
+    @ElementCollection
+    private Set<Long> studentIds = new HashSet<>();
 
     public Gig() {}
 
-    public Gig(String title, String description, Double reward, String status) {
+    public Gig(String title, String description, Double reward, String status, Integer maxPositions) {
         this.title = title;
         this.description = description;
         this.reward = reward;
         this.status = status;
+        this.maxPositions = maxPositions;
     }
 
     public Long getId() { return id; }
@@ -37,4 +45,8 @@ public class Gig {
     public void setReward(Double reward) { this.reward = reward; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public Integer getMaxPositions() { return maxPositions; }
+    public void setMaxPositions(Integer maxPositions) { this.maxPositions = maxPositions; }
+    public Set<Long> getStudentIds() { return studentIds; }
+    public void setStudentIds(Set<Long> studentIds) { this.studentIds = studentIds; }
 }

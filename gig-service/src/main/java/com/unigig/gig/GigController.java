@@ -39,6 +39,8 @@ public class GigController {
                     gig.setDescription(gigDetails.getDescription());
                     gig.setReward(gigDetails.getReward());
                     gig.setStatus(gigDetails.getStatus());
+                    gig.setMaxPositions(gigDetails.getMaxPositions());
+                    gig.setStudentIds(gigDetails.getStudentIds());
                     return ResponseEntity.ok(gigRepository.save(gig));
                 })
                 .orElse(ResponseEntity.notFound().build());

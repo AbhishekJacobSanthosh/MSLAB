@@ -17,15 +17,19 @@ public class User {
     private String email;
     private String role; // STUDENT, ADMIN, FACULTY
     private String password;
+    private String bio;
+    private String skills;
 
     public User() {
     }
 
-    public User(String name, String email, String role, String password) {
+    public User(String name, String email, String role, String password, String bio, String skills) {
         this.name = name;
         this.email = email;
         this.role = role;
         this.password = password;
+        this.bio = bio;
+        this.skills = skills;
     }
 
     public Long getId() {
@@ -67,4 +71,10 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
 }
