@@ -7,50 +7,56 @@ UniGIG is a microservices-based application for managing micro-internships in a 
 - **Eureka Server**: Service Registry (Port 8761)
 - **User Service**: Manages users (Students, Faculty, etc.) (Port 8081)
 - **Gig Service**: Manages gigs/tasks (Port 8082)
-- **Payment Service**: Manages payments/rewards (Port 8083)
+-   **Application Service**: Manages internship applications (Port 8084)
 
-## Prerequisites
+## Architecture
 
-- Java 17+
-- Maven
-- Docker
-- Kubernetes (Minikube or similar)
+The system uses a microservices architecture with the following components:
+
+-   **Eureka Server** (8761): Service Discovery
+-   **User Service** (8081): User Management
+-   **Gig Service** (8082): Gig Inventory
+-   **Payment Service** (8083): Payments & Wallets
+-   **Application Service** (8084): Application Workflow
+
+## Features
+
+### 1. Student Profiles
+-   Students can create profiles with **Bio** and **Skills**.
+-   These details are visible to Professors when applying.
+
+### 2. Approval Workflow
+-   Applications start as **PENDING**.
+-   Professors review applications on their dashboard.
+-   Professors can **Approve** (assigns gig) or **Reject** applications.
+
+### 3. Advanced Gig Management
+-   **Application Limit**: Students are limited to **3 PENDING applications** at a time to encourage thoughtful applying.
+-   **Multi-Student Gigs**: Professors can set "Max Positions" for a gig, allowing multiple students to be approved for the same task.
+-   **Manual Delete**: Professors can delete gigs.
+-   **Auto-Remove**: Gigs are automatically removed/archived upon completion and payment.
+
+### 4. Modern UI
+-   Sleek **Dark Mode** design.
+-   Glassmorphism aesthetic for cards and navigation.
+-   Responsive and spacious layout.
 
 ## Build Instructions
 
-1.  **Build all services**:
+1.  **Run with Docker Compose** (Recommended):
     ```bash
-    cd eureka-server && mvn clean package && cd ..
-    cd user-service && mvn clean package && cd ..
-    cd gig-service && mvn clean package && cd ..
-    cd payment-service && mvn clean package && cd ..
+    docker compose -f docker-compose-full.yml up --build -d
     ```
 
-2.  **Build Docker Images**:
-    ```bash
-    docker build -t eureka-server:latest ./eureka-server
-    docker build -t user-service:latest ./user-service
-    docker build -t gig-service:latest ./gig-service
-    docker build -t payment-service:latest ./payment-service
-    ```
+    This will build and start all microservices, databases, and the frontend.
 
-## Deployment
+2.  **Access the Application**:
+    -   **Frontend**: [http://localhost:3000](http://localhost:3000)
+    -   **Eureka Dashboard**: [http://localhost:8761](http://localhost:8761)
+    -   **PgAdmin**: [http://localhost:5050](http://localhost:5050)
 
-1.  **Deploy to Kubernetes**:
-    ```bash
-    kubectl apply -f k8s/
-    ```
-
-2.  **Access Services**:
-    - Use `kubectl port-forward` to access services locally if not using Ingress/NodePort.
-    - Eureka: `http://localhost:8761`
-    - User Service: `http://localhost:8081/users`
-    - Gig Service: `http://localhost:8082/gigs`
-    - Payment Service: `http://localhost:8083/payments`
-
-## Testing
-
-Run unit tests in each service directory:
-```bash
-mvn test
-```
+## Tech Stack
+-   **Backend**: Java, Spring Boot, Spring Cloud Eureka
+-   **Frontend**: React, Vite, Axios
+-   **Database**: PostgreSQL
+-   **Containerization**: Docker, Docker Compose
