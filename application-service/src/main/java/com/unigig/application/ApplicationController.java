@@ -15,7 +15,8 @@ public class ApplicationController {
     @Autowired
     private ApplicationRepository applicationRepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
 
     @PostMapping
     public Application apply(@RequestBody Application application) {
