@@ -13,11 +13,11 @@ function Login({ onLogin }) {
         try {
             if (isRegistering) {
                 const userData = { name: name || email.split('@')[0], email, role, password };
-                const response = await axios.post('/api/users', userData);
+                const response = await axios.post('http://localhost:8081/users', userData);
                 alert('Registration successful! Please login.');
                 setIsRegistering(false);
             } else {
-                const response = await axios.post('/api/users/login', { email, password });
+                const response = await axios.post('http://localhost:8081/users/login', { email, password });
                 onLogin(response.data);
             }
         } catch (error) {
@@ -82,8 +82,8 @@ function Login({ onLogin }) {
                     </button>
                     <button
                         type="button"
-                        className="btn btn-secondary"
-                        style={{ width: '100%' }}
+                        className="btn"
+                        style={{ width: '100%', background: 'transparent', border: '1px solid var(--card-border)', color: '#fff' }}
                         onClick={() => setIsRegistering(!isRegistering)}
                     >
                         {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}

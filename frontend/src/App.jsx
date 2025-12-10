@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
-import StudentDashboard from './StudentDashboard';
-import AdminDashboard from './AdminDashboard';
+import StudentHome from './pages/student/StudentHome';
+import GigList from './pages/student/GigList';
+import CompletedGigs from './pages/student/CompletedGigs';
+import StudentProfile from './pages/student/StudentProfile';
+import AdminHome from './pages/admin/AdminHome';
+import PostGig from './pages/admin/PostGig';
+import ManageGigs from './pages/admin/ManageGigs';
+import Navbar from './components/Navbar';
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -20,29 +27,34 @@ function App() {
     sessionStorage.removeItem('user');
   };
 
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <Router>
       <div className="app">
-        {user && (
-          <nav className="navbar">
-            <a href="/" className="nav-brand">UniGIG</a>
-            <div className="nav-links">
-              <span>Welcome, {user.name} ({user.role})</span>
-              <button onClick={handleLogout}>Logout</button>
-            </div>
-          </nav>
-        )}
-        <Routes>
-          <Route path="/" element={
-            user ? (
-              user.role === 'ADMIN' ? <Navigate to="/admin" /> : <Navigate to="/student" />
+        <Navbar role={user.role} onLogout={handleLogout} />
+        <div className="container">
+          <Routes>
+            {user.role === 'STUDENT' ? (
+              <>
+                <Route path="/student/home" element={<StudentHome />} />
+                <Route path="/student/gigs" element={<GigList user={user} />} />
+                <Route path="/student/history" element={<CompletedGigs user={user} />} />
+                <Route path="/student/profile" element={<StudentProfile user={user} />} />
+                <Route path="*" element={<Navigate to="/student/home" />} />
+              </>
             ) : (
-              <Login onLogin={handleLogin} />
-            )
-          } />
-          <Route path="/student" element={user && user.role === 'STUDENT' ? <StudentDashboard user={user} /> : <Navigate to="/" />} />
-          <Route path="/admin" element={user && user.role === 'ADMIN' ? <AdminDashboard user={user} /> : <Navigate to="/" />} />
-        </Routes>
+              <>
+                <Route path="/admin/home" element={<AdminHome />} />
+                <Route path="/admin/post-gig" element={<PostGig />} />
+                <Route path="/admin/manage-gigs" element={<ManageGigs />} />
+                <Route path="*" element={<Navigate to="/admin/home" />} />
+              </>
+            )}
+          </Routes>
+        </div>
       </div>
     </Router>
   );

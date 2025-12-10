@@ -76,4 +76,25 @@ public class UserController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/{id}/credit")
+    public ResponseEntity<User> creditUser(@PathVariable Long id, @RequestParam Integer points, @RequestParam Integer gigs) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setPoints(user.getPoints() + points);
+                    user.setGigsCompleted(user.getGigsCompleted() + gigs);
+                    return ResponseEntity.ok(userRepository.save(user));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/leaderboard/points")
+    public List<User> getLeaderboardByPoints() {
+        return userRepository.findTop10ByRoleOrderByPointsDesc("STUDENT");
+    }
+
+    @GetMapping("/leaderboard/gigs")
+    public List<User> getLeaderboardByGigs() {
+        return userRepository.findTop10ByRoleOrderByGigsCompletedDesc("STUDENT");
+    }
 }

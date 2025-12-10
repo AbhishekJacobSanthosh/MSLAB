@@ -46,6 +46,8 @@ The system uses a microservices architecture with the following components:
 1.  **Run with Docker Compose** (Recommended):
     ```bash
     docker compose -f docker-compose-full.yml up --build -d
+
+    docker compose -f docker-compose-full.yml down for shutdown
     ```
 
     This will build and start all microservices, databases, and the frontend.

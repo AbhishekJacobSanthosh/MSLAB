@@ -13,6 +13,11 @@ public class GigServiceApplication {
 	}
 
 	@org.springframework.context.annotation.Bean
+	public org.springframework.web.client.RestTemplate restTemplate() {
+		return new org.springframework.web.client.RestTemplate();
+	}
+
+	@org.springframework.context.annotation.Bean
 	public org.springframework.web.filter.CorsFilter corsFilter() {
 		org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
 		org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();

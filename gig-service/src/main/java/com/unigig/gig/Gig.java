@@ -25,6 +25,12 @@ public class Gig {
     @ElementCollection
     private Set<Long> studentIds = new HashSet<>();
 
+    @ElementCollection
+    private Set<Long> applicantIds = new HashSet<>();
+
+    @ElementCollection
+    private Set<Long> rejectedIds = new HashSet<>();
+
     public Gig() {}
 
     public Gig(String title, String description, Double reward, String status, Integer maxPositions) {
@@ -49,4 +55,26 @@ public class Gig {
     public void setMaxPositions(Integer maxPositions) { this.maxPositions = maxPositions; }
     public Set<Long> getStudentIds() { return studentIds; }
     public void setStudentIds(Set<Long> studentIds) { this.studentIds = studentIds; }
+
+    public Set<Long> getApplicantIds() { return applicantIds; }
+    public void setApplicantIds(Set<Long> applicantIds) { this.applicantIds = applicantIds; }
+
+    public Set<Long> getRejectedIds() {
+        return rejectedIds;
+    }
+
+    public void setRejectedIds(Set<Long> rejectedIds) {
+        this.rejectedIds = rejectedIds;
+    }
+
+    @ElementCollection
+    private Set<Long> completedStudentIds = new HashSet<>();
+
+    public Set<Long> getCompletedStudentIds() {
+        return completedStudentIds;
+    }
+
+    public void setCompletedStudentIds(Set<Long> completedStudentIds) {
+        this.completedStudentIds = completedStudentIds;
+    }
 }

@@ -19,6 +19,8 @@ public class User {
     private String password;
     private String bio;
     private String skills;
+    private Integer points = 0;
+    private Integer gigsCompleted = 0;
 
     public User() {
     }
@@ -77,4 +79,10 @@ public class User {
 
     public String getSkills() { return skills; }
     public void setSkills(String skills) { this.skills = skills; }
+
+    public Integer getPoints() { return points; }
+    public void setPoints(Integer points) { this.points = points; }
+
+    public Integer getGigsCompleted() { return gigsCompleted; }
+    public void setGigsCompleted(Integer gigsCompleted) { this.gigsCompleted = gigsCompleted; }
 }

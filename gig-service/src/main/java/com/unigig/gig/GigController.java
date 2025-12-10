@@ -54,4 +54,85 @@ public class GigController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PostMapping("/{id}/apply")
+    public ResponseEntity<Gig> applyForGig(@PathVariable Long id, @RequestParam Long studentId) {
+        return gigRepository.findById(id)
+                .map(gig -> {
+                    if (gig.getRejectedIds().contains(studentId)) {
+                        return ResponseEntity.badRequest().body(gig); // Rejected students cannot re-apply
+                    }
+                    if (gig.getStudentIds().contains(studentId)) {
+                         return ResponseEntity.badRequest().body(gig);
+                    }
+                    gig.getApplicantIds().add(studentId);
+                    return ResponseEntity.ok(gigRepository.save(gig));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<Gig> approveStudent(@PathVariable Long id, @RequestParam Long studentId) {
+        return gigRepository.findById(id)
+                .map(gig -> {
+                    if (gig.getApplicantIds().contains(studentId)) {
+                        gig.getApplicantIds().remove(studentId);
+                        gig.getStudentIds().add(studentId);
+                        
+                        // Check if full
+                        if (gig.getStudentIds().size() >= gig.getMaxPositions()) {
+                            gig.setStatus("ASSIGNED");
+                            // Auto-reject all other applicants
+                            gig.getRejectedIds().addAll(gig.getApplicantIds());
+                            gig.getApplicantIds().clear();
+                        }
+                        return ResponseEntity.ok(gigRepository.save(gig));
+                    }
+                    return ResponseEntity.ok(gig); 
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<Gig> rejectStudent(@PathVariable Long id, @RequestParam Long studentId) {
+        return gigRepository.findById(id)
+                .map(gig -> {
+                    gig.getApplicantIds().remove(studentId);
+                    gig.getRejectedIds().add(studentId); // Add to rejected list
+                    return ResponseEntity.ok(gigRepository.save(gig));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Autowired
+    private org.springframework.web.client.RestTemplate restTemplate;
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Gig> completeGig(@PathVariable Long id, @RequestParam Long studentId) {
+        return gigRepository.findById(id)
+                .map(gig -> {
+                    if (gig.getStudentIds().contains(studentId)) {
+                        // Add to completed list
+                        gig.getCompletedStudentIds().add(studentId);
+
+                        // Check if ALL students have completed
+                        if (gig.getCompletedStudentIds().containsAll(gig.getStudentIds())) {
+                            gig.setStatus("COMPLETED");
+                        }
+                        
+                        // Call User Service to credit points
+                        try {
+                            Integer points = 100;
+                            Integer gigs = 1;
+                            String userServiceUrl = "http://user-service:8081/users/" + studentId + "/credit?points=" + points + "&gigs=" + gigs;
+                            restTemplate.postForEntity(userServiceUrl, null, Void.class);
+                        } catch (Exception e) {
+                            System.err.println("Failed to credit user: " + e.getMessage());
+                        }
+                        return ResponseEntity.ok(gigRepository.save(gig));
+                    }
+                    return ResponseEntity.ok(gig);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
