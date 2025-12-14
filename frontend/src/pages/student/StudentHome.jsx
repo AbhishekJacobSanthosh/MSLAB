@@ -4,23 +4,38 @@ import axios from 'axios';
 const StudentHome = () => {
     const [pointsLeaderboard, setPointsLeaderboard] = useState([]);
     const [gigsLeaderboard, setGigsLeaderboard] = useState([]);
+    const [totalEarnings, setTotalEarnings] = useState(0);
 
     useEffect(() => {
-        const fetchLeaderboards = async () => {
+        const fetchData = async () => {
             try {
+                const userStr = sessionStorage.getItem('user');
+                const user = userStr ? JSON.parse(userStr) : null;
+
+                if (user && user.id) {
+                    const earningsRes = await axios.get(`http://localhost:8082/gigs/earnings/${user.id}`);
+                    setTotalEarnings(earningsRes.data);
+                }
+
                 const pointsRes = await axios.get('http://localhost:8081/users/leaderboard/points');
                 setPointsLeaderboard(pointsRes.data);
                 const gigsRes = await axios.get('http://localhost:8081/users/leaderboard/gigs');
                 setGigsLeaderboard(gigsRes.data);
             } catch (error) {
-                console.error("Error fetching leaderboards", error);
+                console.error("Error fetching data", error);
             }
         };
-        fetchLeaderboards();
+        fetchData();
     }, []);
 
     return (
         <div>
+            <div className="card" style={{ marginBottom: '2rem', textAlign: 'center', background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)' }}>
+                <h2 style={{ color: 'white', marginBottom: '0.5rem' }}>💰 Total Earnings</h2>
+                <h1 style={{ color: 'white', fontSize: '3rem', margin: 0 }}>${totalEarnings}</h1>
+                <p style={{ color: 'rgba(255,255,255,0.8)' }}>from completed gigs</p>
+            </div>
+
             <h1>Leaderboards</h1>
             <div className="grid">
                 <div className="card">

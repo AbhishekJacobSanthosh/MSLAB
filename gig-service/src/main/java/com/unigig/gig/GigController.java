@@ -135,4 +135,14 @@ public class GigController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/earnings/{studentId}")
+    public ResponseEntity<Double> getStudentEarnings(@PathVariable Long studentId) {
+        List<Gig> allGigs = gigRepository.findAll();
+        double totalEarnings = allGigs.stream()
+                .filter(gig -> gig.getCompletedStudentIds().contains(studentId))
+                .mapToDouble(Gig::getReward)
+                .sum();
+        return ResponseEntity.ok(totalEarnings);
+    }
 }
