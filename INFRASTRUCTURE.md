@@ -15,7 +15,7 @@ Your project has **multiple deployment options** but **nothing is running locall
 4. **Payment Service** (Port 8083) - Handles payments & wallets
 5. **Application Service** (Port 8084) - Manages internship applications
 6. **Frontend** (Port 3000/80) - React app with Nginx reverse proxy
-7. **PostgreSQL** (Port 5432) - Database
+7. **PostgreSQL** (Port 5432) - Database (Hosting 4 separate logical DBs: user_db, gig_db, payment_db, application_db)
 8. **PgAdmin** (Port 5050) - Database management UI
 
 ---

@@ -4,12 +4,18 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
+@org.springframework.web.bind.annotation.RestController
 @SpringBootApplication
 @EnableDiscoveryClient
 public class UserServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(UserServiceApplication.class, args);
+	}
+
+	@org.springframework.web.bind.annotation.GetMapping("/")
+	public String home() {
+		return "<h1>User Service</h1><p>Running on port 8081</p>";
 	}
 
 	@org.springframework.context.annotation.Bean

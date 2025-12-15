@@ -8,11 +8,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: unigig_db
+      POSTGRES_DB: unigig_db # Default DB, others created by init.sql
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
@@ -50,10 +51,13 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/unigig_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/user_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8081/
+      - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8081/
+      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,10 +70,13 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/unigig_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/gig_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8082/
+      - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8082/
+      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,10 +89,13 @@ services:
     ports:
       - "8083:8083"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/unigig_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/payment_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8083/
+      - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8083/
+      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,10 +108,13 @@ services:
     ports:
       - "8084:8084"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/unigig_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/application_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8084/
+      - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8084/
+      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy

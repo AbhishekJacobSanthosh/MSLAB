@@ -1,0 +1,4 @@
+CREATE DATABASE user_db;
+CREATE DATABASE gig_db;
+CREATE DATABASE payment_db;
+CREATE DATABASE application_db;
