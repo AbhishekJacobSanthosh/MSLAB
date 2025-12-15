@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            
+        - id: gig-service
+          uri: lb://GIG-SERVICE
+          predicates:
+            - Path=/api/gigs/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+            
+        - id: application-service
+          uri: lb://APPLICATION-SERVICE
+          predicates:
+            - Path=/api/applications/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+  instance:
+    hostname: localhost
+    status-page-url: http://localhost:8080/
+    home-page-url: http://localhost:8080/

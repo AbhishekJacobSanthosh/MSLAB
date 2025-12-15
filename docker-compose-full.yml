@@ -44,6 +44,20 @@ services:
     environment:
       - JAVA_OPTS=-Djava.security.egd=file:/dev/./urandom
 
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: unigig-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8080/
+      - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8080/
+    depends_on:
+      eureka-server:
+        condition: service_started
+
   # Microservices
   user-service:
     build: ./user-service
@@ -57,7 +71,6 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8081/
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8081/
-      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +89,6 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8082/
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8082/
-      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -95,7 +107,6 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8083/
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8083/
-      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy
@@ -114,7 +125,6 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_STATUS_PAGE_URL=http://localhost:8084/
       - EUREKA_INSTANCE_HOME_PAGE_URL=http://localhost:8084/
-      - EUREKA_INSTANCE_HOSTNAME=localhost
     depends_on:
       postgres:
         condition: service_healthy

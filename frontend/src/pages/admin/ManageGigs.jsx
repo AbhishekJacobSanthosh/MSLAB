@@ -3,42 +3,56 @@ import axios from 'axios';
 
 const ManageGigs = () => {
     const [gigs, setGigs] = useState([]);
-    const [students, setStudents] = useState({}); // Map userId -> full user object
+    const [students, setStudents] = useState({});
+    const [applications, setApplications] = useState({}); // Map gigId -> List<Application>
 
     useEffect(() => {
-        fetchGigsAndStudents();
+        fetchData();
     }, []);
 
-    const fetchGigsAndStudents = async () => {
+    const fetchData = async () => {
         try {
-            const gigRes = await axios.get('http://localhost:8082/gigs');
-            const userRes = await axios.get('http://localhost:8081/users');
+            // Use Gateway
+            const gigRes = await axios.get('/api/gigs');
+            const userRes = await axios.get('/api/users');
 
             const userMap = {};
-            userRes.data.forEach(u => userMap[u.id] = u); // Store full object
+            userRes.data.forEach(u => userMap[u.id] = u);
             setStudents(userMap);
             setGigs(gigRes.data);
+
+            // Fetch applications for all gigs
+            gigRes.data.forEach(gig => fetchApplications(gig.id));
         } catch (error) {
             console.error("Error fetching data", error);
         }
     };
 
-    const handleApprove = async (gigId, studentId) => {
+    const fetchApplications = async (gigId) => {
         try {
-            await axios.post(`http://localhost:8082/gigs/${gigId}/approve?studentId=${studentId}`);
-            alert('Student Approved! Gig assigned.');
-            fetchGigsAndStudents();
+            const res = await axios.get(`/api/applications/gig/${gigId}`);
+            setApplications(prev => ({ ...prev, [gigId]: res.data }));
+        } catch (error) {
+            console.error(`Error fetching applications for gig ${gigId}`, error);
+        }
+    };
+
+    const handleApprove = async (applicationId) => {
+        try {
+            await axios.put(`/api/applications/${applicationId}/approve`);
+            alert('Application Approved!');
+            fetchData(); // Refresh all data
         } catch (error) {
             console.error(error);
             alert('Failed to approve');
         }
     };
 
-    const handleReject = async (gigId, studentId) => {
+    const handleReject = async (applicationId) => {
         try {
-            await axios.post(`http://localhost:8082/gigs/${gigId}/reject?studentId=${studentId}`);
-            alert('Student Rejected.');
-            fetchGigsAndStudents();
+            await axios.put(`/api/applications/${applicationId}/reject`);
+            alert('Application Rejected.');
+            fetchData();
         } catch (error) {
             console.error(error);
             alert('Failed to reject');
@@ -47,9 +61,11 @@ const ManageGigs = () => {
 
     const handleComplete = async (gigId, studentId) => {
         try {
-            await axios.post(`http://localhost:8082/gigs/${gigId}/complete?studentId=${studentId}`);
+            // This still goes to Gig Service, but via Gateway
+            // Note: Application Service sends points. Gig Service has 'complete' endpoint.
+            await axios.post(`/api/gigs/${gigId}/complete?studentId=${studentId}`);
             alert('Gig Completed! Student Rewarded.');
-            fetchGigsAndStudents();
+            fetchData();
         } catch (error) {
             console.error(error);
             alert('Failed to mark complete');
@@ -59,7 +75,7 @@ const ManageGigs = () => {
     const handleDelete = async (gigId) => {
         if (!window.confirm("Are you sure you want to delete this gig?")) return;
         try {
-            await axios.delete(`http://localhost:8082/gigs/${gigId}`);
+            await axios.delete(`/api/gigs/${gigId}`);
             setGigs(gigs.filter(g => g.id !== gigId));
             alert('Gig deleted successfully');
         } catch (error) {
@@ -85,28 +101,34 @@ const ManageGigs = () => {
 
                         <div style={{ marginTop: '1rem' }}>
                             <h4>👨‍🎓 Applicants</h4>
-                            {(!gig.applicantIds || gig.applicantIds.length === 0) && <p style={{ color: 'var(--text-muted)' }}>No pending applications.</p>}
+                            {/* Check applications map for this gig */}
+                            {(!applications[gig.id] || applications[gig.id].filter(a => a.status === 'PENDING').length === 0) && (
+                                <p style={{ color: 'var(--text-muted)' }}>No pending applications.</p>
+                            )}
+
                             <ul style={{ listStyle: 'none', padding: 0 }}>
-                                {gig.applicantIds && gig.applicantIds.map(sid => {
-                                    const student = students[sid];
-                                    return (
-                                        <li key={sid} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem', margin: '0.5rem 0', borderRadius: '8px' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontWeight: 'bold' }}>{student?.name || `Student #${sid}`}</span>
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    <button className="btn btn-sm" style={{ background: '#2ecc71' }} onClick={() => handleApprove(gig.id, sid)}>✓</button>
-                                                    <button className="btn btn-sm" style={{ background: '#e74c3c' }} onClick={() => handleReject(gig.id, sid)}>✕</button>
+                                {applications[gig.id] && applications[gig.id]
+                                    .filter(app => app.status === 'PENDING') // Only show pending here
+                                    .map(app => {
+                                        const student = students[app.studentId];
+                                        return (
+                                            <li key={app.id} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem', margin: '0.5rem 0', borderRadius: '8px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ fontWeight: 'bold' }}>{student?.name || `Student #${app.studentId}`}</span>
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button className="btn btn-sm" style={{ background: '#2ecc71' }} onClick={() => handleApprove(app.id)}>✓</button>
+                                                        <button className="btn btn-sm" style={{ background: '#e74c3c' }} onClick={() => handleReject(app.id)}>✕</button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {student && (
-                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                                                    <p style={{ margin: 0 }}><strong>Bio:</strong> {student.bio || 'N/A'}</p>
-                                                    <p style={{ margin: 0 }}><strong>Skills:</strong> {student.skills || 'N/A'}</p>
-                                                </div>
-                                            )}
-                                        </li>
-                                    );
-                                })}
+                                                {student && (
+                                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                                                        <p style={{ margin: 0 }}><strong>Bio:</strong> {student.bio || 'N/A'}</p>
+                                                        <p style={{ margin: 0 }}><strong>Skills:</strong> {student.skills || 'N/A'}</p>
+                                                    </div>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
                             </ul>
 
                             {gig.studentIds && gig.studentIds.length > 0 && (
