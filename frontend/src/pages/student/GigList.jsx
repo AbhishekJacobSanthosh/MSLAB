@@ -15,7 +15,7 @@ const GigList = ({ user }) => {
     const fetchGigs = async () => {
         try {
             // Use Gateway path
-            const response = await axios.get('/api/gigs');
+            const response = await axios.get('http://localhost:8080/api/gigs');
             setGigs(response.data.filter(g => g.status !== 'COMPLETED'));
         } catch (error) {
             console.error('Error fetching gigs:', error);
@@ -25,7 +25,7 @@ const GigList = ({ user }) => {
     const fetchMyApplications = async () => {
         try {
             // Fetch applications from Application Service via Gateway
-            const response = await axios.get(`/api/applications/student/${user.id}`);
+            const response = await axios.get(`http://localhost:8080/api/applications/student/${user.id}`);
             setMyApplications(response.data);
         } catch (error) {
             console.error('Error fetching applications:', error);
@@ -35,7 +35,7 @@ const GigList = ({ user }) => {
     const handleApply = async (gigId) => {
         try {
             // Post to Application Service via Gateway
-            await axios.post('/api/applications', {
+            await axios.post('http://localhost:8080/api/applications', {
                 gigId: gigId,
                 studentId: user.id
             });

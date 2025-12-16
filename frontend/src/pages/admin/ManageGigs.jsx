@@ -13,8 +13,8 @@ const ManageGigs = () => {
     const fetchData = async () => {
         try {
             // Use Gateway
-            const gigRes = await axios.get('/api/gigs');
-            const userRes = await axios.get('/api/users');
+            const gigRes = await axios.get('http://localhost:8080/api/gigs');
+            const userRes = await axios.get('http://localhost:8080/api/users');
 
             const userMap = {};
             userRes.data.forEach(u => userMap[u.id] = u);
@@ -30,7 +30,7 @@ const ManageGigs = () => {
 
     const fetchApplications = async (gigId) => {
         try {
-            const res = await axios.get(`/api/applications/gig/${gigId}`);
+            const res = await axios.get(`http://localhost:8080/api/applications/gig/${gigId}`);
             setApplications(prev => ({ ...prev, [gigId]: res.data }));
         } catch (error) {
             console.error(`Error fetching applications for gig ${gigId}`, error);
@@ -39,7 +39,7 @@ const ManageGigs = () => {
 
     const handleApprove = async (applicationId) => {
         try {
-            await axios.put(`/api/applications/${applicationId}/approve`);
+            await axios.put(`http://localhost:8080/api/applications/${applicationId}/approve`);
             alert('Application Approved!');
             fetchData(); // Refresh all data
         } catch (error) {
@@ -50,7 +50,7 @@ const ManageGigs = () => {
 
     const handleReject = async (applicationId) => {
         try {
-            await axios.put(`/api/applications/${applicationId}/reject`);
+            await axios.put(`http://localhost:8080/api/applications/${applicationId}/reject`);
             alert('Application Rejected.');
             fetchData();
         } catch (error) {
@@ -61,9 +61,8 @@ const ManageGigs = () => {
 
     const handleComplete = async (gigId, studentId) => {
         try {
-            // This still goes to Gig Service, but via Gateway
-            // Note: Application Service sends points. Gig Service has 'complete' endpoint.
-            await axios.post(`/api/gigs/${gigId}/complete?studentId=${studentId}`);
+            // Using Gateway explicitly
+            await axios.post(`http://localhost:8080/api/gigs/${gigId}/complete?studentId=${studentId}`);
             alert('Gig Completed! Student Rewarded.');
             fetchData();
         } catch (error) {
@@ -75,7 +74,7 @@ const ManageGigs = () => {
     const handleDelete = async (gigId) => {
         if (!window.confirm("Are you sure you want to delete this gig?")) return;
         try {
-            await axios.delete(`/api/gigs/${gigId}`);
+            await axios.delete(`http://localhost:8080/api/gigs/${gigId}`);
             setGigs(gigs.filter(g => g.id !== gigId));
             alert('Gig deleted successfully');
         } catch (error) {

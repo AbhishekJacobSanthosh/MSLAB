@@ -13,11 +13,11 @@ function Login({ onLogin }) {
         try {
             if (isRegistering) {
                 const userData = { name: name || email.split('@')[0], email, role, password };
-                const response = await axios.post('http://localhost:8081/users', userData);
+                const response = await axios.post('http://localhost:8080/api/users', userData);
                 alert('Registration successful! Please login.');
                 setIsRegistering(false);
             } else {
-                const response = await axios.post('http://localhost:8081/users/login', { email, password });
+                const response = await axios.post('http://localhost:8080/api/users/login', { email, password });
                 onLogin(response.data);
             }
         } catch (error) {

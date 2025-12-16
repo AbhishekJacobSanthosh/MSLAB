@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/payments")
-@CrossOrigin(origins = "*")
+
 public class PaymentController {
 
     @Autowired
@@ -35,5 +35,14 @@ public class PaymentController {
         return transactionRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/{userId}/earnings")
+    public ResponseEntity<Double> getStudentEarnings(@PathVariable Long userId) {
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        double totalEarnings = transactions.stream()
+                .mapToDouble(Transaction::getAmount)
+                .sum();
+        return ResponseEntity.ok(totalEarnings);
     }
 }

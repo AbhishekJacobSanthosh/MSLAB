@@ -20,12 +20,26 @@ public class ApplicationController {
 
     @PostMapping
     public Application apply(@RequestBody Application application) {
-        long count = applicationRepository.countByStudentIdAndStatusIn(application.getStudentId(), List.of("PENDING"));
+        long count = applicationRepository.countByStudentIdAndStatusIn(application.getStudentId(), java.util.List.of("PENDING", "APPROVED"));
         if (count >= 3) {
-            throw new RuntimeException("Max 3 active applications allowed.");
+            throw new RuntimeException("You have reached the limit of 3 active Gigs (Pending or Approved).");
         }
         application.setStatus("PENDING");
+        
+        // Call GigService to update applicantIds
+        String gigServiceUrl = "http://gig-service:8082/gigs/" + application.getGigId() + "/apply?studentId=" + application.getStudentId();
+        try {
+            restTemplate.postForEntity(gigServiceUrl, null, Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to notify GigService: " + e.getMessage());
+        }
+
         return applicationRepository.save(application);
+    }
+
+    @GetMapping
+    public List<Application> getAllApplications() {
+        return applicationRepository.findAll();
     }
 
     @GetMapping("/gig/{gigId}")
@@ -42,36 +56,12 @@ public class ApplicationController {
     public Application approve(@PathVariable Long id) {
         Application app = applicationRepository.findById(id).orElseThrow();
         
-        String gigServiceUrl = "http://gig-service:8082/gigs/" + app.getGigId();
-        Map gig = restTemplate.getForObject(gigServiceUrl, Map.class);
-        
-        if (gig != null) {
-            java.util.List<Number> studentIds = (java.util.List<Number>) gig.get("studentIds");
-            if (studentIds == null) studentIds = new java.util.ArrayList<>();
-            
-            Integer maxPositions = (Integer) gig.get("maxPositions");
-            if (maxPositions == null) maxPositions = 1;
-            
-            if (studentIds.size() >= maxPositions) {
-                 throw new RuntimeException("Gig is full");
-            }
-            
-            // Avoid duplicates
-            long studentIdLong = app.getStudentId();
-            boolean alreadyAssigned = studentIds.stream().anyMatch(sid -> sid.longValue() == studentIdLong);
-            
-            if (!alreadyAssigned) {
-                 studentIds.add(studentIdLong);
-                 gig.put("studentIds", studentIds);
-                 
-                 // If full, mark ASSIGNED
-                 if (studentIds.size() >= maxPositions) {
-                     gig.put("status", "ASSIGNED");
-                 }
-                 // Else keep status as is (OPEN)
-                 
-                 restTemplate.put(gigServiceUrl, gig);
-            }
+        // Call GigService to approve student
+        String gigServiceUrl = "http://gig-service:8082/gigs/" + app.getGigId() + "/approve?studentId=" + app.getStudentId();
+        try {
+            restTemplate.postForEntity(gigServiceUrl, null, Object.class);
+        } catch (Exception e) {
+             throw new RuntimeException("Failed to approve in GigService: " + e.getMessage());
         }
 
         app.setStatus("APPROVED");
@@ -81,7 +71,31 @@ public class ApplicationController {
     @PutMapping("/{id}/reject")
     public Application reject(@PathVariable Long id) {
         Application app = applicationRepository.findById(id).orElseThrow();
+        
+        // Call GigService to reject student
+        String gigServiceUrl = "http://gig-service:8082/gigs/" + app.getGigId() + "/reject?studentId=" + app.getStudentId();
+        try {
+            restTemplate.postForEntity(gigServiceUrl, null, Object.class);
+        } catch (Exception e) {
+             throw new RuntimeException("Failed to reject in GigService: " + e.getMessage());
+        }
+
         app.setStatus("REJECTED");
         return applicationRepository.save(app);
+    }
+
+    @DeleteMapping("/gig/{gigId}")
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteApplicationsByGig(@PathVariable Long gigId) {
+        applicationRepository.deleteByGigId(gigId);
+    }
+
+    @PutMapping("/complete")
+    public void completeApplication(@RequestParam Long studentId, @RequestParam Long gigId) {
+        Application app = applicationRepository.findByStudentIdAndGigId(studentId, gigId);
+        if (app != null) {
+            app.setStatus("COMPLETED");
+            applicationRepository.save(app);
+        }
     }
 }

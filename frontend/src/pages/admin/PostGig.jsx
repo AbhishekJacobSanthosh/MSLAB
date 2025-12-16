@@ -18,7 +18,7 @@ const PostGig = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:8082/gigs', {
+            await axios.post('http://localhost:8080/api/gigs', {
                 ...formData,
                 reward: parseFloat(formData.reward),
                 maxPositions: parseInt(formData.maxPositions),

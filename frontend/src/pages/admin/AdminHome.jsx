@@ -11,9 +11,9 @@ const AdminHome = () => {
         const fetchData = async () => {
             try {
                 const [pointsRes, gigsRes, allRes] = await Promise.all([
-                    axios.get('http://localhost:8081/users/leaderboard/points'),
-                    axios.get('http://localhost:8081/users/leaderboard/gigs'),
-                    axios.get('http://localhost:8081/users')
+                    axios.get('http://localhost:8080/api/users/leaderboard/points'),
+                    axios.get('http://localhost:8080/api/users/leaderboard/gigs'),
+                    axios.get('http://localhost:8080/api/users')
                 ]);
                 setPointsLeaderboard(pointsRes.data);
                 setGigsLeaderboard(gigsRes.data);

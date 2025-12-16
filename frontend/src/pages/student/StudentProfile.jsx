@@ -14,8 +14,8 @@ const StudentProfile = ({ user }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Assuming patch for partial update or put. Using User Service.
-            await axios.patch(`http://localhost:8081/users/${user.id}`, formData);
+            // Assuming patch for partial update or put. Using User Service via Gateway.
+            await axios.patch(`http://localhost:8080/api/users/${user.id}`, formData);
             alert('Profile updated!');
         } catch (error) {
             console.error('Error updating profile:', error);

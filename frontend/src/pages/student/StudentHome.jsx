@@ -13,13 +13,13 @@ const StudentHome = () => {
                 const user = userStr ? JSON.parse(userStr) : null;
 
                 if (user && user.id) {
-                    const earningsRes = await axios.get(`http://localhost:8082/gigs/earnings/${user.id}`);
+                    const earningsRes = await axios.get(`http://localhost:8080/api/payments/user/${user.id}/earnings`);
                     setTotalEarnings(earningsRes.data);
                 }
 
-                const pointsRes = await axios.get('http://localhost:8081/users/leaderboard/points');
+                const pointsRes = await axios.get('http://localhost:8080/api/users/leaderboard/points');
                 setPointsLeaderboard(pointsRes.data);
-                const gigsRes = await axios.get('http://localhost:8081/users/leaderboard/gigs');
+                const gigsRes = await axios.get('http://localhost:8080/api/users/leaderboard/gigs');
                 setGigsLeaderboard(gigsRes.data);
             } catch (error) {
                 console.error("Error fetching data", error);

@@ -10,7 +10,7 @@ const CompletedGigs = ({ user }) => {
 
     const fetchCompletedGigs = async () => {
         try {
-            const response = await axios.get('http://localhost:8082/gigs');
+            const response = await axios.get('http://localhost:8080/api/gigs');
             // Filter where user is in completedStudentIds
             const myCompleted = response.data.filter(g =>
                 g.completedStudentIds && g.completedStudentIds.includes(user.id)

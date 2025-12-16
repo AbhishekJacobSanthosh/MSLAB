@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/gigs")
-@CrossOrigin(origins = "*")
+
 public class GigController {
 
     @Autowired
@@ -50,6 +50,16 @@ public class GigController {
     public ResponseEntity<Void> deleteGig(@PathVariable Long id) {
         if (gigRepository.existsById(id)) {
             gigRepository.deleteById(id);
+
+            // Cascade delete applications
+            try {
+                String appServiceUrl = "http://application-service:8084/applications/gig/" + id;
+                restTemplate.delete(appServiceUrl);
+            } catch (Exception e) {
+                // Log and ignore (soft consistency)
+                System.err.println("Failed to cascade delete applications: " + e.getMessage());
+            }
+
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
@@ -75,20 +85,23 @@ public class GigController {
     public ResponseEntity<Gig> approveStudent(@PathVariable Long id, @RequestParam Long studentId) {
         return gigRepository.findById(id)
                 .map(gig -> {
-                    if (gig.getApplicantIds().contains(studentId)) {
-                        gig.getApplicantIds().remove(studentId);
+                    // Relaxed logic: Trust the Admin/ApplicationService.
+                    // Always remove from applicants (if they were there)
+                    gig.getApplicantIds().remove(studentId);
+                    
+                    // Add to students if not already there
+                    if (!gig.getStudentIds().contains(studentId)) {
                         gig.getStudentIds().add(studentId);
-                        
-                        // Check if full
-                        if (gig.getStudentIds().size() >= gig.getMaxPositions()) {
-                            gig.setStatus("ASSIGNED");
-                            // Auto-reject all other applicants
-                            gig.getRejectedIds().addAll(gig.getApplicantIds());
-                            gig.getApplicantIds().clear();
-                        }
-                        return ResponseEntity.ok(gigRepository.save(gig));
                     }
-                    return ResponseEntity.ok(gig); 
+                        
+                    // Check if full
+                    if (gig.getStudentIds().size() >= gig.getMaxPositions()) {
+                        gig.setStatus("ASSIGNED");
+                        // Auto-reject all other applicants
+                        gig.getRejectedIds().addAll(gig.getApplicantIds());
+                        gig.getApplicantIds().clear();
+                    }
+                    return ResponseEntity.ok(gigRepository.save(gig)); 
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -129,6 +142,29 @@ public class GigController {
                         } catch (Exception e) {
                             System.err.println("Failed to credit user: " + e.getMessage());
                         }
+
+                        // Call Application Service to mark as COMPLETED
+                        try {
+                            String appServiceUrl = "http://application-service:8084/applications/complete?studentId=" + studentId + "&gigId=" + id;
+                            restTemplate.put(appServiceUrl, null);
+                        } catch (Exception e) {
+                            System.err.println("Failed to mark application complete: " + e.getMessage());
+                        }
+
+                        // Call Payment Service to record transaction
+                        try {
+                            // Simple Map to represent Transaction
+                            java.util.Map<String, Object> transaction = new java.util.HashMap<>();
+                            transaction.put("userId", studentId);
+                            transaction.put("gigId", id);
+                            transaction.put("amount", gig.getReward());
+                            
+                            String paymentServiceUrl = "http://payment-service:8083/payments";
+                            restTemplate.postForEntity(paymentServiceUrl, transaction, Object.class);
+                        } catch (Exception e) {
+                            System.err.println("Failed to record payment: " + e.getMessage());
+                        }
+
                         return ResponseEntity.ok(gigRepository.save(gig));
                     }
                     return ResponseEntity.ok(gig);
@@ -136,13 +172,4 @@ public class GigController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/earnings/{studentId}")
-    public ResponseEntity<Double> getStudentEarnings(@PathVariable Long studentId) {
-        List<Gig> allGigs = gigRepository.findAll();
-        double totalEarnings = allGigs.stream()
-                .filter(gig -> gig.getCompletedStudentIds().contains(studentId))
-                .mapToDouble(Gig::getReward)
-                .sum();
-        return ResponseEntity.ok(totalEarnings);
-    }
 }

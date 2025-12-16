@@ -3,6 +3,18 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
       discovery:
         locator:
           enabled: true
@@ -13,6 +25,7 @@ spring:
           predicates:
             - Path=/api/users/**
           filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             
         - id: gig-service
@@ -20,6 +33,7 @@ spring:
           predicates:
             - Path=/api/gigs/**
           filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             
         - id: payment-service
@@ -27,6 +41,7 @@ spring:
           predicates:
             - Path=/api/payments/**
           filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
             - RewritePath=/api/(?<segment>.*), /$\{segment}
             
         - id: application-service
@@ -34,7 +49,17 @@ spring:
           predicates:
             - Path=/api/applications/**
           filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
             - RewritePath=/api/(?<segment>.*), /$\{segment}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
 
 server:
   port: 8080
