@@ -186,11 +186,10 @@ Instead of just the "Running on port" page, show the **Raw Data**:
 3.  **Show Payment Data**: Go to `http://localhost:8080/api/payments`.
     *   *Say:* "Here is the transaction we just created."
 
-## 5. The "Persistence" Layer (Optional)
-**Goal:** Prove you aren't faking it in memory.
+## 6. Advanced Business Logic (Bonus Points)
+**Goal:** Show that you handled edge cases.
 
-1.  **Open PgAdmin** (`http://localhost:5050`).
-2.  **Browse Data**:
-    *   Show `gig_db` -> `gig` table.
-    *   Show `payment_db` -> `transaction` table.
-    *   *Say:* "As you can see, each service uses its own isolated database schema."
+1.  **The "3-Gig Limit" Rule**:
+    *   *Say:* "To prevent spam, we limited students to 3 active gigs. If I try to apply for a 4th one, the backend throws a custom exception."
+2.  **Cascade Deletion**:
+    *   *Say:* "If I delete a Gig as an Admin, the system automatically cleans up all related student applications to maintain database integrity."
